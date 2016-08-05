@@ -40,7 +40,7 @@ public:
 	void setFactors(const int& index);
 	void setFactorsErrors(const int& index);
 	void updateHistory();
-	void binvaluedistribution();
+	void binlogprobdistribution();
 	void chi2plot();
 	void chainhistoryplot();
 	void chi2distribution();

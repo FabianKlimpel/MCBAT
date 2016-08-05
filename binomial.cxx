@@ -885,29 +885,33 @@ void binomial::updateHistory(){
 	}
 }
 
-void binomial::binvaluedistribution(){
+void binomial::binlogprobdistribution(){
 
 	std::vector<double> mode = FindMode(GetBestFitParameters());
 	
-	double maximum = 0;
+	double maximum = 0, minimum = 0;
 	for(size_t i = 0; i < ref_values.size(); i++)
+	{
 		if(BCMath::LogGaus(fit_func(mode, i), ref_values[i], sqrt(ref_values_errors[i] * ref_values_errors[i] + fit_err_func(mode, i))) > maximum)
 			maximum = BCMath::LogGaus(fit_func(mode, i), ref_values[i], sqrt(ref_values_errors[i] * ref_values_errors[i] + fit_err_func(mode, i)));
+		if(BCMath::LogGaus(fit_func(mode, i), ref_values[i], sqrt(ref_values_errors[i] * ref_values_errors[i] + fit_err_func(mode, i))) < minimum)
+			minimum = BCMath::LogGaus(fit_func(mode, i), ref_values[i], sqrt(ref_values_errors[i] * ref_values_errors[i] + fit_err_func(mode, i)));
+	}
 
 
 	TCanvas* tc;
 	TH1D* th1d;
 
-	tc = new TCanvas("binvaluedistribution.pdf");
+	tc = new TCanvas("binlogprobdistribution.pdf");
 	tc->cd();
-	th1d = new TH1D("binvaluedistribution.pdf", "binvaluedistribution.pdf", (int) (1.5 * sqrt(ref_values.size())), 0, maximum);
+	th1d = new TH1D("binlogprogdistribution.pdf", "binlogprobdistribution.pdf", (int) (1.5 * sqrt(ref_values.size())), minimum, maximum);
 
 	for(size_t i = 0; i < ref_values.size(); i++)
 		th1d->Fill(BCMath::LogGaus(fit_func(mode, i), ref_values[i], sqrt(ref_values_errors[i] * ref_values_errors[i] + fit_err_func(mode, i))));
 
 	th1d->Draw();
 	gPad->Update();
-	tc->Print("binvaluedistribution.pdf");
+	tc->Print("binlogprobdistribution.pdf");
 	tc->Clear();
 }
 
@@ -963,9 +967,16 @@ void binomial::chainhistoryplot(){
 
 }
 
+double chi2function(double x, int ndof){
+
+	return pow(x, (ndof / 2) - 1) * exp(-x / 2) / (exp2(ndof / 2) * tgamma(ndof / 2));
+
+}
+
 void binomial::chi2distribution(){
 
-	//TCanvas* tc = new TCanvas("chi2distribution.pdf");
+	TCanvas* tc = new TCanvas("chi2distribution.pdf");
+	tc->cd();
 
 	double sum = 0;
 	std::vector<double> mode = FindMode(GetBestFitParameters());
@@ -973,8 +984,19 @@ void binomial::chi2distribution(){
 	for(size_t i = 0; i < ref_values.size(); i++)
 		sum += (fit_func(mode, i) -  ref_values[i]) * (fit_func(mode, i) -  ref_values[i]) / (ref_values_errors[i] * ref_values_errors[i] + fit_err_func(mode, i));
 
-	//TF1* tf1 = new TF1("chi2",	, 0, 2 * sum);
+	int ndof = ref_values.size() - GetNParameters();
+	
+	TF1* tf1 = new TF1("chi2","pow(x, ([0] / 2) - 1) * exp(-x / 2) / (exp2([0] / 2) * tgamma([0] / 2))", 0, sum);
+	tf1->SetParameter(0,ndof);
+	tf1->Draw();
+
+	gPad->Update();
+	tc->Print("chi2distribution.pdf");
+	tc->Clear();
+	
 }
+
+
 //double binomial::LogLikelihood(const std::vector<double>& parameters)
 //{
 //	double logprob = 0;

@@ -109,8 +109,9 @@ int main(int argc, char** argv) {
    		BCLog::OutSummary("Exiting");
   		BCLog::CloseLog();
 		
-		m.chainhistoryplot();
-		//m.binvaluedistribution();
+		//m.chainhistoryplot();
+		//m.binlogprobdistribution();
+		m.chi2distribution();
 		//m.chi2plot();
 	}
 	else
